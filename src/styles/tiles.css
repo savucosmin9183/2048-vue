@@ -1,0 +1,312 @@
+
+   
+.tile1_1{
+    position:absolute;
+    top:0;
+    left:0;
+    margin-left: 10px;
+ }
+ 
+ .tile1_2{
+    position:absolute;
+    top:0;
+    left:80px;
+    margin-left: 10px; 
+ }
+ 
+ .tile1_3{
+    position:absolute;
+    top:0;
+    left:160px;
+    margin-left: 10px; 
+ }
+ 
+ .tile1_4{
+    position:absolute;
+    top:0;
+    left:240px;
+    margin-left: 10px; 
+ }
+ 
+ .tile1_5{
+    position:absolute;
+    top:0;
+    left:320px;
+    margin-left: 10px; 
+ }
+ 
+ .tile1_6{
+    position:absolute;
+    top:0;
+    left:400px;
+    margin-left: 10px; 
+ }
+ 
+ .tile2_1{
+    position:absolute;
+    top:80px;
+    left:0;
+    margin-left: 10px;
+ }
+ 
+ .tile2_2{
+    position:absolute;
+    top:80px;
+    left:80px;
+    margin-left: 10px; 
+ }
+ 
+ .tile2_3{
+    position:absolute;
+    top:80px;
+    left:160px;
+    margin-left: 10px; 
+ }
+ 
+ .tile2_4{
+    position:absolute;
+    top:80px;
+    left:240px;
+    margin-left: 10px; 
+ }
+ 
+ .tile2_5{
+    position:absolute;
+    top:80px;
+    left:320px;
+    margin-left: 10px; 
+ }
+ 
+ .tile2_6{
+    position:absolute;
+    top:80px;
+    left:400px;
+    margin-left: 10px; 
+ }
+ 
+ .tile3_1{
+    position:absolute;
+    top:160px;
+    left:0;
+    margin-left: 10px;
+ }
+ 
+ .tile3_2{
+    position:absolute;
+    top:160px;
+    left:80px;
+    margin-left: 10px; 
+ }
+ 
+ .tile3_3{
+    position:absolute;
+    top:160px;
+    left:160px;
+    margin-left: 10px; 
+ }
+ 
+ .tile3_4{
+    position:absolute;
+    top:160px;
+    left:240px;
+    margin-left: 10px; 
+ }
+ 
+ .tile3_5{
+    position:absolute;
+    top:160px;
+    left:320px;
+    margin-left: 10px; 
+ }
+ 
+ .tile3_6{
+    position:absolute;
+    top:160px;
+    left:400px;
+    margin-left: 10px; 
+ }
+ 
+ .tile4_1{
+    position:absolute;
+    top:240px;
+    left:0;
+    margin-left: 10px;
+ }
+ 
+ .tile4_2{
+    position:absolute;
+    top:240px;
+    left:80px;
+    margin-left: 10px; 
+ }
+ 
+ .tile4_3{
+    position:absolute;
+    top:240px;
+    left:160px;
+    margin-left: 10px; 
+ }
+ 
+ .tile4_4{
+    position:absolute;
+    top:240px;
+    left:240px;
+    margin-left: 10px; 
+ }
+ 
+ .tile4_5{
+    position:absolute;
+    top:240px;
+    left:320px;
+    margin-left: 10px; 
+ }
+ 
+ .tile4_6{
+    position:absolute;
+    top:240px;
+    left:400px;
+    margin-left: 10px; 
+ }
+ 
+ .tile5_1{
+    position:absolute;
+    top:320px;
+    left:0;
+    margin-left: 10px;
+ }
+ 
+ .tile5_2{
+    position:absolute;
+    top:320px;
+    left:80px;
+    margin-left: 10px; 
+ }
+ 
+ .tile5_3{
+    position:absolute;
+    top:320px;
+    left:160px;
+    margin-left: 10px; 
+ }
+ 
+ .tile5_4{
+    position:absolute;
+    top:320px;
+    left:240px;
+    margin-left: 10px; 
+ }
+ 
+ .tile5_5{
+    position:absolute;
+    top:320px;
+    left:320px;
+    margin-left: 10px; 
+ }
+ 
+ .tile5_6{
+    position:absolute;
+    top:320px;
+    left:400px;
+    margin-left: 10px; 
+ }
+ 
+ .tile6_1{
+    position:absolute;
+    top:400px;
+    left:0;
+    margin-left: 10px;
+ }
+ 
+ .tile6_2{
+    position:absolute;
+    top:400px;
+    left:80px;
+    margin-left: 10px; 
+ }
+ 
+ .tile6_3{
+    position:absolute;
+    top:400px;
+    left:160px;
+    margin-left: 10px; 
+ }
+ 
+ .tile6_4{
+    position:absolute;
+    top:400px;
+    left:240px;
+    margin-left: 10px; 
+ }
+ 
+ .tile6_5{
+    position:absolute;
+    top:400px;
+    left:320px;
+    margin-left: 10px; 
+ }
+ 
+ .tile6_6{
+    position:absolute;
+    top:400px;
+    left:400px;
+    margin-left: 10px; 
+ }
+
+ .square.tile7_0{
+    display: none;
+ }
+ 
+ 
+ 
+ 
+ 
+ .gamegrid .tile2{
+     background-color: #eee4da;
+     color: #776e65;
+ }
+ 
+ .gamegrid .tile4{
+     background-color: #ede0c8;
+     color: #776e65;
+ }
+ 
+ .gamegrid .tile8{
+     background-color: #f2b179;
+ }
+ 
+ .gamegrid .tile16{
+     background-color: #f59563;
+ }
+ 
+ .gamegrid .tile32{
+     background-color: #f67c60;
+ }
+ 
+ .gamegrid .tile64{
+     background-color: #f65e3b;
+ }
+ 
+ .gamegrid .tile128{
+     background-color: #edcf73;
+     font-size: 40px;
+ }
+ 
+ .gamegrid .tile256{
+     background-color: #edcc62;
+     font-size: 40px;
+ }
+ 
+ .gamegrid .tile512{
+     background-color: #edc850;
+     font-size: 40px;
+ }
+ 
+ .gamegrid .tile1024{
+     background-color: #edc53f;
+     font-size: 28px;
+ }
+ 
+ .gamegrid .tile2048{
+     background-color: #edc22d;
+     font-size: 28px;
+ }
