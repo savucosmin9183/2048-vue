@@ -22,11 +22,13 @@ export default {
     return {
       table: [],
       copy_table: null,
-      tiles: []
+      tiles: [],
+      sync: true
     };
   },
   methods: {
     left_arrow(my_move) {
+      this.sync = false;
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let k;
       for (let i = 0; i < 6; i++) {
@@ -62,6 +64,7 @@ export default {
                 ok = 0;
               else ok = 1;
               if (this.copy_table[i][k] == this.copy_table[i][j] && ok == 0) {
+                debugger
                 was_merged[k] = true;
                 let new_val = this.copy_table[i][k] * 2;
                 this.table[i][j] = 0;
@@ -96,6 +99,8 @@ export default {
       }
       if(JSON.stringify(test_move) != JSON.stringify(this.copy_table))
         this.spawn_new_tile(my_move, false);
+
+
       if (my_move)
         db.collection("moves")
           .doc()
@@ -103,8 +108,22 @@ export default {
             move: "left",
             author: this.name
           });
+      else{
+        let bool;
+        db.collection('available').get().then(res => {
+          res.forEach(doc => {
+            bool = doc.data().value;
+          })
+        })
+        setTimeout(() => {
+          db.collection('available').doc('available').set({
+            value: !bool
+          })
+        }, 240);
+      }
     },
     right_arrow(my_move) {
+      this.sync = false;
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let k;
       //i is row index
@@ -176,6 +195,7 @@ export default {
       }
       if(JSON.stringify(test_move) != JSON.stringify(this.copy_table))
         this.spawn_new_tile(my_move, false);
+
       if (my_move)
         db.collection("moves")
           .doc()
@@ -183,8 +203,22 @@ export default {
             move: "right",
             author: this.name
           });
+      else{
+        let bool;
+        db.collection('available').get().then(res => {
+          res.forEach(doc => {
+            bool = doc.data().value;
+          })
+        })
+        setTimeout(() => {
+          db.collection('available').doc('available').set({
+            value: !bool
+          })
+        }, 240);
+      }
     },
     up_arrow(my_move) {
+      this.sync = false;
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let made_move = 0;
       let k;
@@ -254,6 +288,7 @@ export default {
       }
       if(JSON.stringify(test_move) != JSON.stringify(this.copy_table))
         this.spawn_new_tile(my_move, false);
+
       if (my_move)
         db.collection("moves")
           .doc()
@@ -261,8 +296,22 @@ export default {
             move: "up",
             author: this.name
           });
+      else{
+        let bool;
+        db.collection('available').get().then(res => {
+          res.forEach(doc => {
+            bool = doc.data().value;
+          })
+        })
+        setTimeout(() => {
+          db.collection('available').doc('available').set({
+            value: !bool
+          })
+        }, 240);
+      }
     },
     down_arrow(my_move) {
+      this.sync = false;
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let made_move = 0;
       let k;
@@ -336,14 +385,26 @@ export default {
 
       if(JSON.stringify(test_move) != JSON.stringify(this.copy_table))
         this.spawn_new_tile(my_move, false);
-      if (my_move){
-        console.log(this.name);
+
+      if (my_move)
         db.collection("moves")
           .doc()
           .set({
             move: "down",
             author: this.name
           });
+      else{
+        let bool;
+        db.collection('available').get().then(res => {
+          res.forEach(doc => {
+            bool = doc.data().value;
+          })
+        })
+        setTimeout(() => {
+          db.collection('available').doc('available').set({
+            value: !bool
+          })
+        }, 240);
       }
     },
     set_delay(i, k, new_val) {
@@ -378,8 +439,10 @@ export default {
       } else if (!my_move && !new_game) {
         let a = parseInt(localStorage.getItem("a"));
         let b = parseInt(localStorage.getItem("b"));
-        this.tiles.push([a + 1, b + 1, { delete: false }]);
-        this.table[a][b] = 2;
+        setTimeout(() => {
+          this.tiles.push([a + 1, b + 1, { delete: false }]);
+          this.table[a][b] = 2;
+        }, 240);
         this.copy_table[a][b] = 2;
       } else if (my_move && new_game) {
         let a, b, c, d;
@@ -425,18 +488,30 @@ export default {
       }
     },
     key_pressed(e) {
-      if (e.keyCode == 37) {
+      if (e.keyCode == 37 && this.sync) {
+        this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.left_arrow(true);
-        this.update_db();
-      } else if (e.keyCode == 38) {
+        setTimeout(() => {
+          this.update_db();
+        }, 250);
+      } else if (e.keyCode == 38 && this.sync) {
+        this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.up_arrow(true);
-        this.update_db();
-      } else if (e.keyCode == 39) {
+        setTimeout(() => {
+          this.update_db();
+        }, 250);
+      } else if (e.keyCode == 39 && this.sync) {
+        this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.right_arrow(true);
-        this.update_db();
-      } else if (e.keyCode == 40) {
+        setTimeout(() => {
+          this.update_db();
+        }, 250);
+      } else if (e.keyCode == 40 && this.sync) {
+        this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.down_arrow(true);
-        this.update_db();
+        setTimeout(() => {
+          this.update_db();
+        }, 250);
       }
     },
     update_db() {
@@ -480,6 +555,7 @@ export default {
       });
       this.tiles = [];
       this.spawn_new_tile(my_move, new_game);
+
       if (my_move)
         db.collection("moves")
           .doc()
@@ -491,7 +567,7 @@ export default {
   },
   created() {
     window.addEventListener("keydown", this.key_pressed);
-    console.log(this.name);
+
 
     db.collection("table")
       .get()
@@ -527,14 +603,40 @@ export default {
         if (!snapshot.docChanges().empty) {
           snapshot.docChanges().forEach(change => {
             if (change.type == "added") {
-              if (change.doc.data().author != this.name) {
-                if (change.doc.data().move == "left") this.left_arrow(false);
-                if (change.doc.data().move == "right") this.right_arrow(false);
-                if (change.doc.data().move == "up") this.up_arrow(false);
-                if (change.doc.data().move == "down") this.down_arrow(false);
+              if (change.doc.data().author != this.name) {  
+                if (change.doc.data().move == "left" && this.sync){
+                  this.copy_table = JSON.parse(JSON.stringify(this.table));
+                  this.left_arrow(false);
+                } 
+                if (change.doc.data().move == "right" && this.sync){
+                  this.copy_table = JSON.parse(JSON.stringify(this.table));
+                  this.right_arrow(false);
+                } 
+                if (change.doc.data().move == "up" && this.sync){
+                  this.copy_table = JSON.parse(JSON.stringify(this.table));
+                  this.up_arrow(false);
+                } 
+                if (change.doc.data().move == "down" && this.sync){
+                  this.copy_table = JSON.parse(JSON.stringify(this.table));
+                  this.down_arrow(false);
+                } 
                 if (change.doc.data().move == "new")
                   this.start_new_game(false, true);
               }
+            }
+          });
+        }
+      }
+    });
+    initial_state = true;
+    db.collection("available").onSnapshot(snapshot => {
+      if (initial_state) {
+        initial_state = false;
+      } else {
+        if (!snapshot.docChanges().empty) {
+          snapshot.docChanges().forEach(change => {
+            if (change.type == "modified") {
+              this.sync = true;
             }
           });
         }
