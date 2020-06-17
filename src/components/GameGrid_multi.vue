@@ -16,7 +16,7 @@
 <script>
 import db from "@/firebase/init";
 export default {
-  name: "GameGrid",
+  name: "GameGridMulti",
   props: ["name"],
   data() {
     return {

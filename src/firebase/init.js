@@ -3,14 +3,14 @@ import 'firebase/auth';
 import 'firebase/firestore';
 
 var firebaseConfig = {
-  apiKey: "AIzaSyC_1wuYL4V9VB3u6tPgvixBOGjmy8a47_c",
-  authDomain: "real-adbc0.firebaseapp.com",
-  databaseURL: "https://real-adbc0.firebaseio.com",
-  projectId: "real-adbc0",
-  storageBucket: "real-adbc0.appspot.com",
-  messagingSenderId: "843097405861",
-  appId: "1:843097405861:web:ef962754ffce8d52ddd04c",
-  measurementId: "G-HK60GFE22N"
+  apiKey: "AIzaSyCa6Ky3UA4A9fW6IY6mePzWOysXZ1K9c1g",
+  authDomain: "project-638744809026533914.firebaseapp.com",
+  databaseURL: "https://project-638744809026533914.firebaseio.com",
+  projectId: "project-638744809026533914",
+  storageBucket: "project-638744809026533914.appspot.com",
+  messagingSenderId: "1060452624467",
+  appId: "1:1060452624467:web:089a49aacf5ca9cedffea6",
+  measurementId: "G-F6ZLZMGT79"
 };
   // Initialize Firebase
   const firebaseApp = firebase.initializeApp(firebaseConfig);

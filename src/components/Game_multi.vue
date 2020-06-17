@@ -4,16 +4,16 @@
             <p>Online users:</p>
             <p v-for="user in online_users">{{ user }}</p>
         </div>
-        <GameGrid :name="name"/>
+        <GameGridMulti :name="name"/>
     </div>
 </template>
 
 <script>
 import db from '@/firebase/init'
-import GameGrid from './GameGrid'
+import GameGridMulti from './GameGrid_multi'
 
 export default {
-    name: 'Game',
+    name: 'GameMulti',
     props: ['name'],
     data() {
         return {
@@ -48,7 +48,7 @@ export default {
         window.removeEventListener('popstate', this.exit)
     },
     components: {
-        GameGrid
+        GameGridMulti
     }
 }
 </script>
