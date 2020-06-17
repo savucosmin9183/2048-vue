@@ -656,9 +656,7 @@ export default {
   width: 480px;
   height: 480px;
   background-color: #776e65;
-  position: absolute;
-  left: calc(40% - 250px);
-  top: calc(50% - 250px);
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   padding-left: 10px;
