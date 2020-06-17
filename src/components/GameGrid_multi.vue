@@ -683,9 +683,4 @@ export default {
   transition: 0.25s ease-out;
 }
 
-.new_game {
-  position: absolute;
-  right: 20%;
-  top: 20%;
-}
 </style>
