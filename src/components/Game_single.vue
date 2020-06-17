@@ -521,6 +521,22 @@ export default {
       }
     });
 
+    initial_state = true;
+    db.collection("hall-of-fame").onSnapshot(snapshot => {
+      if (initial_state) {
+        initial_state = false;
+      } else {
+        if (!snapshot.docChanges().empty) {
+          snapshot.docChanges().forEach(change => {
+            if (change.type == "added") {
+                if(this.name != change.doc.id)
+                    this.hall_of_fame.unshift({name: change.doc.id}, {score: 0})
+            }
+          });
+        }
+      }
+    });
+
   },
   beforeDestroy(){
     window.removeEventListener("keydown", this.key_pressed);
@@ -579,7 +595,7 @@ export default {
 }
 
 .hall_of_fame .hall_item.my_name{
-    color: black;
+    color: #f2b179;
     font-weight: 700;
 }
 
@@ -608,7 +624,7 @@ export default {
 }
 
 .hall_of_fame{
-    background-color: white;
+    background-color: #776e65;
     height: 400px;
     width: 300px;
     margin-left: 50px;
@@ -619,7 +635,7 @@ export default {
 }
 
 .hall_of_fame .title{
-    color: #776e65;
+    color: #ede0c8;
     font-size: 30px;
     font-weight: 900;
     margin-left: 70px;
@@ -628,7 +644,7 @@ export default {
 
 }
 .hall_of_fame .hall_item{
-    color: #776e65;
+    color: #e2dddd;
     margin-left: 10px;
     margin-top: 10px;
     margin-bottom: 10px;
