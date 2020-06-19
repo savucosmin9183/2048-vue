@@ -1,6 +1,6 @@
 <template>
   <div class="welcome">
-    <div class="container">
+    <div class="container_welcome">
       <p class="maintitle">2048</p>
       <div class="choose_mode">
         <div @click="single_click" :class="{'selected': singleplayer == true,
@@ -67,7 +67,7 @@ export default {
   justify-content: center;
 }
 
-.container{
+.container_welcome{
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -75,7 +75,7 @@ export default {
   align-items: center;
 }
 
-.container .maintitle{
+.container_welcome .maintitle{
   font-family: sans-serif;
   font-size: 100px;
   font-weight: 900;
@@ -84,7 +84,7 @@ export default {
 }
 
 
-.container .input_label{
+.container_welcome .input_label{
   font-family: sans-serif;
   font-size: 40px;
   color: #776e65;
@@ -92,7 +92,7 @@ export default {
   margin-bottom: 20px;
 }
 
-.container .input{
+.container_welcome .input{
   height: 35px;
   width: 200px;
   color: #776e65;
@@ -101,7 +101,7 @@ export default {
   margin-bottom: 20px;
 }
 
-.container .join{
+.container_welcome .join{
   background-color: #776e65;
   color: white;
   display: block;
@@ -110,7 +110,7 @@ export default {
   height: 40px;
   cursor: pointer;
 }
-.container .feedback{
+.container_welcome .feedback{
   color: red;
   font-family: sans-serif;
   font-size: 15px;
@@ -150,7 +150,7 @@ export default {
 
   @media screen and (max-device-width: 800px){
 
-    .container .maintitle{
+    .container_welcome .maintitle{
       margin-top: 50px;
     }
 

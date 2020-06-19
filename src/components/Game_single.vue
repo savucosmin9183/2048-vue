@@ -10,10 +10,7 @@
                 <button @click="start_new_game(true,true)" class="new_game">New Game</button>
             </div>
             <div class="gamegrid" 
-            v-touch:swipe.left="left_swipe"
-            v-touch:swipe.right="right_swipe"
-            v-touch:swipe.up="up_swipe"
-            v-touch:swipe.down="down_swipe">
+            v-touch:swipe="swipe_handler">
               <div v-for="index in 36" :key="index" class="square"></div>
               <div
                   v-for="(tile, index) in tiles"
@@ -53,17 +50,16 @@ export default {
     };
   },
   methods: {
-    left_swipe(){
-      this.left_arrow(true);
-    },
-    right_swipe(){
-      this.right_arrow(true);
-    },
-    up_swipe(){
-      this.up_arrow(true);
-    },
-    down_swipe(){
-      this.down_arrow(true);
+    swipe_handler(direction){
+      console.log(direction);
+      if(direction == 'top')
+        this.up_arrow(true);
+      else if(direction == 'bottom')
+        this.down_arrow(true);
+      else if(direction == 'left')
+        this.left_arrow(true);
+      else if(direction == 'right')
+        this.right_arrow(true);
     },
     left_arrow(my_move) {
       this.sync = false;
