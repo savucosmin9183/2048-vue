@@ -9,28 +9,36 @@
                 </div>
                 <button @click="start_new_game(true,true)" class="new_game">New Game</button>
             </div>
-            <div class="gamegrid">
-            <div v-for="index in 36" :key="index" class="square"></div>
-            <div
-                v-for="(tile, index) in tiles"
-                :key="index + 40"
-                class="square"
-                :class="['tile' + table[tile[0]-1][tile[1]-1] ,'tile' + tile[0] + '_' + tile[1]]"
-            >{{table[tile[0]-1][tile[1]-1]}}</div>
+            <div class="gamegrid" 
+            v-touch:swipe.left="left_swipe"
+            v-touch:swipe.right="right_swipe"
+            v-touch:swipe.up="up_swipe"
+            v-touch:swipe.down="down_swipe">
+              <div v-for="index in 36" :key="index" class="square"></div>
+              <div
+                  v-for="(tile, index) in tiles"
+                  :key="index + 40"
+                  class="square"
+                  :class="['tile' + table[tile[0]-1][tile[1]-1] ,'tile' + tile[0] + '_' + tile[1]]"
+              >{{table[tile[0]-1][tile[1]-1]}}</div>
             </div>
         </div>
         <div class="hall_of_fame">
-            <p class = 'title'>Hall of fame</p>
-            <p v-for="(item, index) in hall_of_fame" v-if="item.score > 0 && index < 10" class="hall_item"
-            :class="{'my_name': item.name == name}">
-            {{index+1}}. {{item.name}}      {{item.score}}
-            </p>
+            <div class="marquee">
+                <p class = 'title'>Hall of fame</p>
+                <div><p v-for="(item, index) in hall_of_fame" v-if="item.score > 0 && index < 10" class="hall_item"
+                :class="{'my_name': item.name == name}">
+                {{index+1}}. {{item.name}}      {{item.score}}
+                </p></div>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
 import db from "@/firebase/init";
+
+
 export default {
   name: "GameSingle",
   props: ["name"],
@@ -45,8 +53,21 @@ export default {
     };
   },
   methods: {
+    left_swipe(){
+      this.left_arrow(true);
+    },
+    right_swipe(){
+      this.right_arrow(true);
+    },
+    up_swipe(){
+      this.up_arrow(true);
+    },
+    down_swipe(){
+      this.down_arrow(true);
+    },
     left_arrow(my_move) {
       this.sync = false;
+      this.copy_table = JSON.parse(JSON.stringify(this.table));
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let k;
       for (let i = 0; i < 6; i++) {
@@ -123,6 +144,7 @@ export default {
     },
     right_arrow(my_move) {
       this.sync = false;
+      this.copy_table = JSON.parse(JSON.stringify(this.table));
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let k;
       //i is row index
@@ -201,6 +223,7 @@ export default {
     },
     up_arrow(my_move) {
       this.sync = false;
+      this.copy_table = JSON.parse(JSON.stringify(this.table));
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let made_move = 0;
       let k;
@@ -277,6 +300,7 @@ export default {
     },
     down_arrow(my_move) {
       this.sync = false;
+      this.copy_table = JSON.parse(JSON.stringify(this.table));
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let made_move = 0;
       let k;
@@ -445,16 +469,12 @@ export default {
     },
     key_pressed(e) {
       if (e.keyCode == 37 && this.sync) {
-        this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.left_arrow(true);
       } else if (e.keyCode == 38 && this.sync) {
-        this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.up_arrow(true);
       } else if (e.keyCode == 39 && this.sync) {
-        this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.right_arrow(true);
       } else if (e.keyCode == 40 && this.sync) {
-        this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.down_arrow(true);
       }
     },
@@ -488,14 +508,12 @@ export default {
                 score: 0
             })
     })
-    setTimeout(() => {
         db.collection('hall-of-fame').orderBy('score').get()
         .then(snapshot => {
             snapshot.forEach(doc => {
                 this.hall_of_fame.unshift({name: doc.id, score: doc.data().score});
             })
         })
-    }, 100);
 
     var initial_state = true;
     db.collection("hall-of-fame").onSnapshot(snapshot => {
@@ -529,8 +547,7 @@ export default {
         if (!snapshot.docChanges().empty) {
           snapshot.docChanges().forEach(change => {
             if (change.type == "added") {
-                if(this.name != change.doc.id)
-                    this.hall_of_fame.unshift({name: change.doc.id}, {score: 0})
+              this.hall_of_fame.push({name: change.doc.id, score: 0})
             }
           });
         }
@@ -542,10 +559,12 @@ export default {
     window.removeEventListener("keydown", this.key_pressed);
   }
 };
+//animation:scroll 15s linear infinite;
 </script>
 
 <style>
 @import "../styles/tiles.css";
+@import "../styles/tiles_mobile";
 
 .gamegrid {
   width: 480px;
@@ -670,5 +689,110 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+@media screen and (max-device-width: 850px){
+
+    .container{
+        margin-top: 100px;
+    }
+
+    .hall_of_fame {
+        height: 90px;
+        width: 100vw;
+        margin: 0;
+        overflow: hidden;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+    }
+    .hall_of_fame .title{
+        display: none;
+    }
+
+    .marquee{
+        display:flex;
+        width: 2000px;
+        flex-direction: row;
+        position:absolute;
+        top: 20px;
+        animation:scroll 15s linear infinite;
+        padding:3px;
+    }
+
+    .marquee p.hall_item{
+        font-size: 26px;
+        float:left;
+        margin-left: 50px;
+    }
+
+    @keyframes scroll{
+        0% {left:800px;}
+        100% {left:-1750px;}
+    }
+}
+
+@media screen and (max-device-width: 520px){
+
+    .gamegrid {
+  width: 300px;
+  height: 300px;
+  padding-left: 5px;
+  padding-bottom: 5px;
+}
+
+
+  .square {
+  width: 45px;
+  height: 45px;
+  margin-top: 5px;
+  margin-right: 5px;
+  font-size: 40px;
+  box-shadow: 0 0 15px 10px rgba(243, 215, 116, 0),
+    inset 0 0 0 1px rgba(255, 255, 255, 0);
+}
+
+.container{
+    width: 310px;
+    height: 500px;
+}
+.container .header{
+  margin-bottom: 10px;
+  height: 60px;
+}
+
+.header .title{
+  font-size: 40px;
+}
+
+.score{
+    width: 80px;
+    height: 45px;
+    background-color: #776e65;
+    border-radius: 5px;
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.score .title_score{
+    margin: 0;
+    color: #e2dddd;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.score .actual_score{
+    color: white;
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0;
+}
+
+    
 }
 </style>

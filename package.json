@@ -12,7 +12,10 @@
   "dependencies": {
     "firebase": "^7.15.1",
     "vue": "^2.5.2",
-    "vue-router": "^3.0.1"
+    "vue-router": "^3.0.1",
+    "vue-touch": "^2.0.0-beta.4",
+    "vue2-hammer": "^2.1.2",
+    "vue2-touch-events": "^2.2.1"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",

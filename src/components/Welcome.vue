@@ -148,4 +148,12 @@ export default {
   cursor:pointer;
   }
 
+  @media screen and (max-device-width: 800px){
+
+    .container .maintitle{
+      margin-top: 50px;
+    }
+
+  }
+
 </style>
