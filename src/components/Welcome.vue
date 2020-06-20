@@ -1,8 +1,17 @@
 <template>
   <div class="welcome">
-    <div class="container">
+    <div class="container_welcome">
       <p class="maintitle">2048</p>
-      <p class="subtitle">multiplayer</p>
+      <div class="choose_mode">
+        <div @click="single_click" :class="{'selected': singleplayer == true,
+                                    'not_selected': singleplayer == false}">
+          <p class="single"> Singleplayer </p>
+        </div>
+        <div @click="multi_click" :class="{'selected': multiplayer == true,
+                                    'not_selected': multiplayer == false}">
+          <p class="multi"> Multiplayer </p>
+        </div>
+      </div>
       <p class="input_label">Enter your name:</p>
       <input type="text" class="input" v-model="name">
       <p v-if="feedback" class="feedback">{{ feedback }}</p>
@@ -19,17 +28,32 @@ export default {
   data () {
     return {
       name: null,
-      feedback: null
+      feedback: null,
+      singleplayer: true,
+      multiplayer: false
     }
   },
   methods: {
     join_game(){
       if(this.name){
-       db.collection('online-users').doc(this.name).set({});
-        this.$router.push({ name: 'Game', params: { name: this.name } })
+        if(this.multiplayer){
+          db.collection('online-users').doc(this.name).set({});
+          this.$router.push({ name: 'GameMulti', params: { name: this.name } })
+        }
+        else{
+          this.$router.push({ name: 'GameSingle', params: { name: this.name } })
+        }
       }else{
         this.feedback = 'You must enter a name to join'
       }
+    },
+    single_click(){
+      this.singleplayer = true;
+      this.multiplayer = false;
+    },
+    multi_click(){
+      this.singleplayer = false;
+      this.multiplayer = true;
     }
   }
 }
@@ -43,7 +67,7 @@ export default {
   justify-content: center;
 }
 
-.container{
+.container_welcome{
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -51,30 +75,24 @@ export default {
   align-items: center;
 }
 
-.container .maintitle{
+.container_welcome .maintitle{
   font-family: sans-serif;
   font-size: 100px;
   font-weight: 900;
   color: #776e65;
   margin-bottom: 0;
 }
-.container .subtitle{
-  font-family: sans-serif;
-  font-size: 20px;
-  font-weight: 500;
-  color: #776e65;
-  margin-top: 0;
-}
 
-.container .input_label{
+
+.container_welcome .input_label{
   font-family: sans-serif;
   font-size: 40px;
   color: #776e65;
-  margin-top: 80px;
+  margin-top: 40px;
   margin-bottom: 20px;
 }
 
-.container .input{
+.container_welcome .input{
   height: 35px;
   width: 200px;
   color: #776e65;
@@ -83,7 +101,7 @@ export default {
   margin-bottom: 20px;
 }
 
-.container .join{
+.container_welcome .join{
   background-color: #776e65;
   color: white;
   display: block;
@@ -92,11 +110,50 @@ export default {
   height: 40px;
   cursor: pointer;
 }
-.container .feedback{
+.container_welcome .feedback{
   color: red;
   font-family: sans-serif;
   font-size: 15px;
 }
 
+.choose_mode{
+  width: 300px;
+  height: 150px;
+  display: flex;
+  flex-direction: row;
+  margin-top: 40px;
+  font-size: 25px;
+}
+
+.choose_mode .selected{
+  width: 50%;
+  height: 100%;
+  background-color: #776e65;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 15px 6px -6px black;
+}
+
+.choose_mode .not_selected{
+  width: 50%;
+  height: 100%;
+  background-color: white;
+  color: #776e65;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor:pointer;
+  }
+
+  @media screen and (max-device-width: 800px){
+
+    .container_welcome .maintitle{
+      margin-top: 50px;
+    }
+
+  }
 
 </style>

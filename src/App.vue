@@ -18,6 +18,7 @@ html, body {
 #app {
   width: 100vw;
   height: 100vh;
-  background-color: whitesmoke;
+  overflow: hidden;
+  background-color: #e2dddd;
 }
 </style>

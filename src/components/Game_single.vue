@@ -1,34 +1,69 @@
 <template>
-  <div>
-    <button @click="start_new_game(true, true)" class="new_game">New Game</button>
-    <div class="gamegrid">
-      <div v-for="index in 36" :key="index" class="square"></div>
-      <div
-        v-for="(tile, index) in tiles"
-        :key="index + 40"
-        class="square"
-        :class="['tile' + table[tile[0]-1][tile[1]-1] ,'tile' + tile[0] + '_' + tile[1]]"
-      >{{table[tile[0]-1][tile[1]-1]}}</div>
+    <div class = "wrapper">
+        <div class="container">
+            <div class="header">
+                <p class="title">2048</p>
+                <div class="score">
+                    <p class="title_score">Score</p>
+                    <p class="actual_score">{{ score }}</p>
+                </div>
+                <button @click="start_new_game(true,true)" class="new_game">New Game</button>
+            </div>
+            <div class="gamegrid" 
+            v-touch:swipe="swipe_handler">
+              <div v-for="index in 36" :key="index" class="square"></div>
+              <div
+                  v-for="(tile, index) in tiles"
+                  :key="index + 40"
+                  class="square"
+                  :class="['tile' + table[tile[0]-1][tile[1]-1] ,'tile' + tile[0] + '_' + tile[1]]"
+              >{{table[tile[0]-1][tile[1]-1]}}</div>
+            </div>
+        </div>
+        <div class="hall_of_fame">
+            <div class="marquee">
+                <p class = 'title'>Hall of fame</p>
+                <div><p v-for="(item, index) in hall_of_fame" v-if="item.score > 0 && index < 10" class="hall_item"
+                :class="{'my_name': item.name == name}">
+                {{index+1}}. {{item.name}}      {{item.score}}
+                </p></div>
+            </div>
+        </div>
     </div>
-  </div>
 </template>
 
 <script>
 import db from "@/firebase/init";
+
+
 export default {
-  name: "GameGrid",
+  name: "GameSingle",
   props: ["name"],
   data() {
     return {
       table: [],
       copy_table: null,
       tiles: [],
-      sync: true
+      sync: true,
+      score: 0,
+      hall_of_fame: []
     };
   },
   methods: {
+    swipe_handler(direction){
+      console.log(direction);
+      if(direction == 'top')
+        this.up_arrow(true);
+      else if(direction == 'bottom')
+        this.down_arrow(true);
+      else if(direction == 'left')
+        this.left_arrow(true);
+      else if(direction == 'right')
+        this.right_arrow(true);
+    },
     left_arrow(my_move) {
       this.sync = false;
+      this.copy_table = JSON.parse(JSON.stringify(this.table));
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let k;
       for (let i = 0; i < 6; i++) {
@@ -64,9 +99,9 @@ export default {
                 ok = 0;
               else ok = 1;
               if (this.copy_table[i][k] == this.copy_table[i][j] && ok == 0) {
-                debugger
                 was_merged[k] = true;
                 let new_val = this.copy_table[i][k] * 2;
+                this.update_score(new_val);
                 this.table[i][j] = 0;
                 this.copy_table[i][j] = 0;
                 this.copy_table[i][k] = new_val;
@@ -99,31 +134,13 @@ export default {
       }
       if(JSON.stringify(test_move) != JSON.stringify(this.copy_table))
         this.spawn_new_tile(my_move, false);
-
-
-      if (my_move)
-        db.collection("moves")
-          .doc()
-          .set({
-            move: "left",
-            author: this.name
-          });
-      else{
-        let bool;
-        db.collection('available').get().then(res => {
-          res.forEach(doc => {
-            bool = doc.data().value;
-          })
-        })
-        setTimeout(() => {
-          db.collection('available').doc('available').set({
-            value: !bool
-          })
-        }, 240);
-      }
+      setTimeout(() => {
+        this.sync = true;
+      }, 240);
     },
     right_arrow(my_move) {
       this.sync = false;
+      this.copy_table = JSON.parse(JSON.stringify(this.table));
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let k;
       //i is row index
@@ -163,6 +180,7 @@ export default {
               if (this.copy_table[i][k] == this.copy_table[i][j] && ok == 0) {
                 was_merged[k] = true;
                 let new_val = this.copy_table[i][k] * 2;
+                this.update_score(new_val);
                 this.table[i][j] = 0;
                 this.copy_table[i][j] = 0;
                 this.copy_table[i][k] = new_val;
@@ -195,30 +213,13 @@ export default {
       }
       if(JSON.stringify(test_move) != JSON.stringify(this.copy_table))
         this.spawn_new_tile(my_move, false);
-
-      if (my_move)
-        db.collection("moves")
-          .doc()
-          .set({
-            move: "right",
-            author: this.name
-          });
-      else{
-        let bool;
-        db.collection('available').get().then(res => {
-          res.forEach(doc => {
-            bool = doc.data().value;
-          })
-        })
-        setTimeout(() => {
-          db.collection('available').doc('available').set({
-            value: !bool
-          })
-        }, 240);
-      }
+      setTimeout(() => {
+        this.sync = true;
+      }, 240);
     },
     up_arrow(my_move) {
       this.sync = false;
+      this.copy_table = JSON.parse(JSON.stringify(this.table));
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let made_move = 0;
       let k;
@@ -256,6 +257,7 @@ export default {
               if (this.copy_table[k][i] == this.copy_table[j][i] && ok == 0) {
                 was_merged[k] = true;
                 let new_val = this.copy_table[k][i] * 2;
+                this.update_score(new_val);
                 this.table[j][i] = 0;
                 this.copy_table[j][i] = 0;
                 this.copy_table[k][i] = new_val;
@@ -288,30 +290,13 @@ export default {
       }
       if(JSON.stringify(test_move) != JSON.stringify(this.copy_table))
         this.spawn_new_tile(my_move, false);
-
-      if (my_move)
-        db.collection("moves")
-          .doc()
-          .set({
-            move: "up",
-            author: this.name
-          });
-      else{
-        let bool;
-        db.collection('available').get().then(res => {
-          res.forEach(doc => {
-            bool = doc.data().value;
-          })
-        })
-        setTimeout(() => {
-          db.collection('available').doc('available').set({
-            value: !bool
-          })
-        }, 240);
-      }
+      setTimeout(() => {
+        this.sync = true;
+      }, 240);
     },
     down_arrow(my_move) {
       this.sync = false;
+      this.copy_table = JSON.parse(JSON.stringify(this.table));
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let made_move = 0;
       let k;
@@ -350,6 +335,7 @@ export default {
               if (this.copy_table[k][i] == this.copy_table[j][i] && ok == 0) {
                 was_merged[k] = true;
                 let new_val = this.copy_table[k][i] * 2;
+                this.update_score(new_val);
                 this.table[j][i] = 0;
                 this.copy_table[j][i] = 0;
                 this.copy_table[k][i] = new_val;
@@ -385,27 +371,9 @@ export default {
 
       if(JSON.stringify(test_move) != JSON.stringify(this.copy_table))
         this.spawn_new_tile(my_move, false);
-
-      if (my_move)
-        db.collection("moves")
-          .doc()
-          .set({
-            move: "down",
-            author: this.name
-          });
-      else{
-        let bool;
-        db.collection('available').get().then(res => {
-          res.forEach(doc => {
-            bool = doc.data().value;
-          })
-        })
-        setTimeout(() => {
-          db.collection('available').doc('available').set({
-            value: !bool
-          })
-        }, 240);
-      }
+      setTimeout(() => {
+        this.sync = true;
+      }, 240);
     },
     set_delay(i, k, new_val) {
       setTimeout(() => {
@@ -417,6 +385,18 @@ export default {
           this.table[i][k] = new_val;
         });
       }, 240);
+    },
+    update_score(new_val){
+        this.score = this.score + new_val;
+        let hallref = db.collection('hall-of-fame');
+        hallref.doc(this.name).get()
+        .then(doc => {
+            if(doc.data().score < this.score){
+                hallref.doc(this.name).set({
+                    score: this.score
+                })
+            }
+        })
     },
     spawn_new_tile(my_move, new_game) {
       if (my_move && !new_game) {
@@ -435,14 +415,11 @@ export default {
         this.copy_table[a][b] = 2;
         localStorage.setItem("a", a);
         localStorage.setItem("b", b);
-        this.update_db();
       } else if (!my_move && !new_game) {
         let a = parseInt(localStorage.getItem("a"));
         let b = parseInt(localStorage.getItem("b"));
-        setTimeout(() => {
-          this.tiles.push([a + 1, b + 1, { delete: false }]);
-          this.table[a][b] = 2;
-        }, 240);
+        this.tiles.push([a + 1, b + 1, { delete: false }]);
+        this.table[a][b] = 2;
         this.copy_table[a][b] = 2;
       } else if (my_move && new_game) {
         let a, b, c, d;
@@ -469,7 +446,6 @@ export default {
         this.copy_table[c][d] = 2;
         localStorage.setItem("c", c);
         localStorage.setItem("d", d);
-        this.update_db();
       } else {
         let a = parseInt(localStorage.getItem("a"));
         let b = parseInt(localStorage.getItem("b"));
@@ -489,56 +465,17 @@ export default {
     },
     key_pressed(e) {
       if (e.keyCode == 37 && this.sync) {
-        this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.left_arrow(true);
-        setTimeout(() => {
-          this.update_db();
-        }, 250);
       } else if (e.keyCode == 38 && this.sync) {
-        this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.up_arrow(true);
-        setTimeout(() => {
-          this.update_db();
-        }, 250);
       } else if (e.keyCode == 39 && this.sync) {
-        this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.right_arrow(true);
-        setTimeout(() => {
-          this.update_db();
-        }, 250);
       } else if (e.keyCode == 40 && this.sync) {
-        this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.down_arrow(true);
-        setTimeout(() => {
-          this.update_db();
-        }, 250);
       }
-    },
-    update_db() {
-      let ref = db.collection("table");
-
-      for (let i = 0; i < 6; i++) {
-        ref.doc("line" + (i + 1)).set({
-          values: this.copy_table[i]
-        });
-      }
-      db.collection("tiles")
-        .get()
-        .then(res => {
-          res.forEach(element => {
-            element.ref.delete();
-          });
-          let ref2 = db.collection("tiles");
-          this.tiles.forEach(tile => {
-            ref2.doc("tile" + tile[0] + "_" + tile[1]).set({
-              valuex: tile[0],
-              valuey: tile[1],
-              delete: tile[2].delete
-            });
-          });
-        });
     },
     start_new_game(my_move, new_game) {
+      this.score = 0;
       this.table = [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
@@ -549,116 +486,87 @@ export default {
         [0]
       ];
       this.copy_table = JSON.parse(JSON.stringify(this.table));
-      let ref = db.collection("tiles");
-      this.tiles.forEach(tile => {
-        ref.doc("tile" + tile[0] + "_" + tile[1]).delete();
-      });
+
       this.tiles = [];
       this.spawn_new_tile(my_move, new_game);
+    },
 
-      if (my_move)
-        db.collection("moves")
-          .doc()
-          .set({
-            move: "new",
-            author: this.name
-          });
-    }
   },
   created() {
     window.addEventListener("keydown", this.key_pressed);
+    this.start_new_game(true,true);
 
-
-    db.collection("table")
-      .get()
-      .then(snapshot => {
-        snapshot.forEach(doc => {
-          let line = [];
-          for (let i = 0; i < 6; i++) {
-            line[i] = doc.data().values[i];
-          }
-          this.table.push(line);
-        });
-        this.table.push([0]);
-        this.copy_table = JSON.parse(JSON.stringify(this.table));
-      });
-
-    db.collection("tiles")
-      .get()
-      .then(snapshot => {
-        snapshot.forEach(doc => {
-          this.tiles.push([
-            doc.data().valuex,
-            doc.data().valuey,
-            { delete: doc.data().delete }
-          ]);
-        });
-      });
+    let hallref = db.collection('hall-of-fame');
+    hallref.doc(this.name).get()
+    .then(doc => {
+        if(!doc.exists)
+            hallref.doc(this.name).set({
+                score: 0
+            })
+    })
+        db.collection('hall-of-fame').orderBy('score').get()
+        .then(snapshot => {
+            snapshot.forEach(doc => {
+                this.hall_of_fame.unshift({name: doc.id, score: doc.data().score});
+            })
+        })
 
     var initial_state = true;
-    db.collection("moves").onSnapshot(snapshot => {
-      if (initial_state) {
-        initial_state = false;
-      } else {
-        if (!snapshot.docChanges().empty) {
-          snapshot.docChanges().forEach(change => {
-            if (change.type == "added") {
-              if (change.doc.data().author != this.name) {  
-                if (change.doc.data().move == "left" && this.sync){
-                  this.copy_table = JSON.parse(JSON.stringify(this.table));
-                  this.left_arrow(false);
-                } 
-                if (change.doc.data().move == "right" && this.sync){
-                  this.copy_table = JSON.parse(JSON.stringify(this.table));
-                  this.right_arrow(false);
-                } 
-                if (change.doc.data().move == "up" && this.sync){
-                  this.copy_table = JSON.parse(JSON.stringify(this.table));
-                  this.up_arrow(false);
-                } 
-                if (change.doc.data().move == "down" && this.sync){
-                  this.copy_table = JSON.parse(JSON.stringify(this.table));
-                  this.down_arrow(false);
-                } 
-                if (change.doc.data().move == "new")
-                  this.start_new_game(false, true);
-              }
-            }
-          });
-        }
-      }
-    });
-    initial_state = true;
-    db.collection("available").onSnapshot(snapshot => {
+    db.collection("hall-of-fame").onSnapshot(snapshot => {
       if (initial_state) {
         initial_state = false;
       } else {
         if (!snapshot.docChanges().empty) {
           snapshot.docChanges().forEach(change => {
             if (change.type == "modified") {
-              this.sync = true;
+              this.hall_of_fame.forEach(entry => {
+                if(entry.name == change.doc.id)
+                    entry.score = change.doc.data().score;
+                
+              })
+              this.hall_of_fame.sort(function(a,b){
+                  if(a.score < b.score) return 1;
+                  if(a.score > b.score) return -1;
+                  return 0;
+              })
             }
           });
         }
       }
     });
+
+    initial_state = true;
+    db.collection("hall-of-fame").onSnapshot(snapshot => {
+      if (initial_state) {
+        initial_state = false;
+      } else {
+        if (!snapshot.docChanges().empty) {
+          snapshot.docChanges().forEach(change => {
+            if (change.type == "added") {
+              this.hall_of_fame.push({name: change.doc.id, score: 0})
+            }
+          });
+        }
+      }
+    });
+
   },
   beforeDestroy(){
     window.removeEventListener("keydown", this.key_pressed);
   }
 };
+//animation:scroll 15s linear infinite;
 </script>
 
 <style>
 @import "../styles/tiles.css";
+@import "../styles/tiles_mobile";
 
 .gamegrid {
   width: 480px;
   height: 480px;
   background-color: #776e65;
-  position: absolute;
-  left: calc(40% - 250px);
-  top: calc(50% - 250px);
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   padding-left: 10px;
@@ -684,8 +592,203 @@ export default {
 }
 
 .new_game {
-  position: absolute;
-  right: 20%;
-  top: 20%;
+  height: 40px;
+  width: 110px;
+  background-color: #776e65;
+  color: #e2dddd;
+  border-radius: 5px;
+  padding: 0 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.container{
+    width: 500px;
+    height: 650px;
+    margin-top: 50px;
+}
+
+.hall_of_fame .hall_item.my_name{
+    color: #f2b179;
+    font-weight: 700;
+}
+
+.score{
+    width: 80px;
+    height: 60px;
+    background-color: #776e65;
+    border-radius: 5px;
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.score .title_score{
+    margin: 0;
+    color: #e2dddd;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.score .actual_score{
+    color: white;
+    font-size: 25px;
+    font-weight: 500;
+    margin: 0;
+}
+
+.hall_of_fame{
+    background-color: #776e65;
+    height: 400px;
+    width: 300px;
+    margin-left: 50px;
+    margin-top: 120px;
+    box-shadow: inset 0 3px 6px rgba(0,0,0,0.45), 0 4px 6px rgba(0,0,0,0.45);
+    border-radius: 10px;
+
+}
+
+.hall_of_fame .title{
+    color: #ede0c8;
+    font-size: 30px;
+    font-weight: 900;
+    margin-left: 70px;
+    margin-bottom: 5px;
+    margin-top: 15px;
+
+}
+.hall_of_fame .hall_item{
+    color: #e2dddd;
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.header{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    align-items: center;
+    justify-content: space-around;
+}
+.header .title{
+  font-family: sans-serif;
+  font-size: 70px;
+  font-weight: 900;
+  color: #776e65;
+  margin: 0;
+}
+
+.wrapper{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media screen and (max-device-width: 850px){
+
+    .container{
+        margin-top: 100px;
+    }
+
+    .hall_of_fame {
+        height: 90px;
+        width: 100vw;
+        margin: 0;
+        overflow: hidden;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+    }
+    .hall_of_fame .title{
+        display: none;
+    }
+
+    .marquee{
+        display:flex;
+        width: 2000px;
+        flex-direction: row;
+        position:absolute;
+        top: 20px;
+        animation:scroll 15s linear infinite;
+        padding:3px;
+    }
+
+    .marquee p.hall_item{
+        font-size: 26px;
+        float:left;
+        margin-left: 50px;
+    }
+
+    @keyframes scroll{
+        0% {left:800px;}
+        100% {left:-1750px;}
+    }
+}
+
+@media screen and (max-device-width: 520px){
+
+    .gamegrid {
+  width: 300px;
+  height: 300px;
+  padding-left: 5px;
+  padding-bottom: 5px;
+}
+
+
+  .square {
+  width: 45px;
+  height: 45px;
+  margin-top: 5px;
+  margin-right: 5px;
+  font-size: 40px;
+  box-shadow: 0 0 15px 10px rgba(243, 215, 116, 0),
+    inset 0 0 0 1px rgba(255, 255, 255, 0);
+}
+
+.container{
+    width: 310px;
+    height: 500px;
+}
+.container .header{
+  margin-bottom: 10px;
+  height: 60px;
+}
+
+.header .title{
+  font-size: 40px;
+}
+
+.score{
+    width: 80px;
+    height: 45px;
+    background-color: #776e65;
+    border-radius: 5px;
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.score .title_score{
+    margin: 0;
+    color: #e2dddd;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.score .actual_score{
+    color: white;
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0;
+}
+
+    
 }
 </style>
