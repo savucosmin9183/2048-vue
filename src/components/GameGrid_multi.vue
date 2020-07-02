@@ -931,7 +931,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 @import "../styles/tiles.css";
 @import "../styles/tiles_mobile.css";
 @import "../styles/chat_style.css";
