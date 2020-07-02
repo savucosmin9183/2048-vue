@@ -4,6 +4,10 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import Vue2TouchEvents from 'vue2-touch-events'
+import VueChatScroll from 'vue-chat-scroll'
+
+Vue.use(VueChatScroll)
+Vue.use(require('vue-moment'));
  
 Vue.use(Vue2TouchEvents)
 

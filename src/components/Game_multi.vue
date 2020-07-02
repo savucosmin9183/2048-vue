@@ -1,9 +1,5 @@
 <template>
-    <div>
-        <div class="online_users">
-            <p>Online users:</p>
-            <p v-for="user in online_users">{{ user }}</p>
-        </div>
+    <div class="multi_page">
         <GameGridMulti :name="name"/>
     </div>
 </template>
@@ -28,6 +24,7 @@ export default {
     created() {
         window.addEventListener('beforeunload', this.exit);
         window.addEventListener('popstate', this.exit);
+    
 
         db.collection('online-users')
         .onSnapshot((snapshot) => {
@@ -49,13 +46,14 @@ export default {
     },
     components: {
         GameGridMulti
-    }
+    },
+ 
 }
 </script>
 
 <style>
    
-   .online_users p{
-       margin: 0;
-}
+   .multi_page{
+       height: 100%;
+   }
 </style>

@@ -10,7 +10,7 @@
                 <button @click="start_new_game(true,true)" class="new_game">New Game</button>
             </div>
             <div class="gamegrid" 
-            v-touch:swipe="swipe_handler">
+            v-touch:swipe.prevent="swipe_handler">
               <div v-for="index in 36" :key="index" class="square"></div>
               <div
                   v-for="(tile, index) in tiles"
@@ -687,10 +687,10 @@ export default {
     justify-content: center;
 }
 
-@media screen and (max-device-width: 850px){
+@media screen and (max-width: 850px){
 
     .container{
-        margin-top: 100px;
+        margin-top: 150px;
     }
 
     .hall_of_fame {
@@ -732,7 +732,7 @@ export default {
     }
 }
 
-@media screen and (max-device-width: 520px){
+@media screen and (max-width: 600px){
 
     .gamegrid {
   width: 300px;

@@ -64,7 +64,9 @@ export default {
 
 .welcome{
   display: flex;
+  align-items: center;
   justify-content: center;
+  height: 100%;
 }
 
 .container_welcome{
@@ -73,6 +75,7 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  padding-bottom: 100px;
 }
 
 .container_welcome .maintitle{
@@ -81,6 +84,7 @@ export default {
   font-weight: 900;
   color: #776e65;
   margin-bottom: 0;
+  margin-top: 0;
 }
 
 
