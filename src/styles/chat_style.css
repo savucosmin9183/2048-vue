@@ -1,0 +1,155 @@
+.chat_block{
+    margin-left: 50px;
+    margin-top: 20px;
+}
+
+.messages{
+    background-color: #776e65;
+    height: 400px;
+    width: 300px;
+    margin-bottom: 20px;
+    box-shadow: inset 0 3px 6px rgba(0,0,0,0.45), 0 4px 6px rgba(0,0,0,0.45);
+    border-radius: 10px;
+    overflow: auto;
+}
+
+.form_input{
+    width: 80%;
+    height: 40px;
+    border: none;
+    background-color: #776e65;
+    color: white;
+    outline: none;
+}
+
+.chat_title{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat_title p{
+    font-size: 35px;
+    font-weight: 700;
+    color: #776e65;
+    margin: 10px;
+}
+
+.send_button{
+  height: 40px;
+  width: 80px;
+  background-color: #776e65;
+  color: #e2dddd;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  
+}
+
+.message__item{
+    margin-bottom: 10px;
+}
+
+.msgs{
+    padding-left: 10px;
+}
+
+.message__item{
+    color:#e2dddd; 
+}
+
+.timestamp{
+    display: block;
+    font-size: 13px;
+}
+
+.messages::-webkit-scrollbar {
+    width: 3px;
+  }
+  
+  .messages::-webkit-scrollbar-track {
+    background: #ddd;
+  }
+  
+  .messages:::-webkit-scrollbar-thumb {
+    background: #aaa;
+  }
+
+  .msg_container{
+      display: flex;
+      flex-direction: row;
+  }
+
+  .online_users{
+    background-color: #776e65;
+    height: 400px;
+    width: 150px;
+    margin-bottom: 20px;
+    box-shadow: inset 0 3px 6px rgba(0,0,0,0.45), 0 4px 6px rgba(0,0,0,0.45);
+    border-radius: 10px;
+    overflow: auto;
+    text-align: center;
+  }
+
+  .online_users .title{
+    color: #e2dddd;
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  .user__item{
+      display: flex;
+      flex-direction: row;
+      margin-top: 10px;
+      justify-content: flex-start;
+      align-items: center;
+      height: 20px;
+  }
+
+  .user__item p{
+      color: #e2dddd;
+  }
+
+
+  .green_circle{
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: green;
+      margin-right: 5px;
+      margin-left: 10px;
+  }
+  
+  .game_status{
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+  }
+
+  .status{
+      margin-top: 10px;
+      color: #776e65;
+
+  }
+
+  .ready{
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: green;
+    margin-top: 15px;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+
+  .waiting{
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: yellow;
+    margin-top: 15px;
+    margin-left: 5px;
+    margin-right: 5px; 
+  }

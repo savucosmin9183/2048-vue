@@ -1,20 +1,71 @@
 <template>
-  <div>
-    <button @click="start_new_game(true, true)" class="new_game">New Game</button>
-    <div class="gamegrid">
-      <div v-for="index in 36" :key="index" class="square"></div>
-      <div
-        v-for="(tile, index) in tiles"
-        :key="index + 40"
-        class="square"
-        :class="['tile' + table[tile[0]-1][tile[1]-1] ,'tile' + tile[0] + '_' + tile[1]]"
-      >{{table[tile[0]-1][tile[1]-1]}}</div>
-    </div>
+  <div class = "wrapper_multi">
+      <div class="cont">
+        <div class="container_multi">
+            <div class="header_multi">
+                <p class="title_multi">2048</p>
+                <div class="score_multi">
+                    <p class="title_score_multi">Score</p>
+                    <p class="actual_score_multi">{{ score }}</p>
+                </div>
+                <button @click="start_new_game(true,true)" class="new_game_multi">New Game</button>
+            </div>
+            <div class="gamegrid" 
+            v-touch:swipe.prevent="swipe_handler">
+              <div v-for="index in 36" :key="index" class="square"></div>
+              <div
+                  v-for="(tile, index) in tiles"
+                  :key="index + 40"
+                  class="square"
+                  :class="['tile' + table[tile[0]-1][tile[1]-1] ,'tile' + tile[0] + '_' + tile[1]]"
+              >{{table[tile[0]-1][tile[1]-1]}}</div>
+            <div v-if="sync" class="game_status">
+              <p class="status">Game Status: </p> <div class="ready"/> <p class="status">Ready</p>
+            </div>
+            <div v-else class="game_status">
+              <p class="status">Game Status: </p> <div class="waiting"/> <p class="status">Waiting</p>
+            </div>
+          </div>
+        </div>
+        <div class="chat_block">
+          <div class="chat_title">
+            <p>2048 chat</p>
+          </div>
+          <div class="msg_container">
+            <div class="messages" v-chat-scroll>
+              <ul class="msgs">
+                <li class="message__item" v-for="message in messages" :key="message.id"
+                :class="{'my_name_multi': message.name == name}">
+                  <span class="name">{{message.name}}</span>
+                  <span class="message">{{message.content}}</span>
+                  <span class="timestamp">{{message.timestamp}}</span>
+                </li>
+              </ul>
+            </div>
+            <div class="online_users">
+              <p class="title">Online players:</p>
+              <div v-for="user in online_users" class="user__item">
+                <div class="green_circle"></div>
+                <p>{{user}}</p>
+              </div>
+            </div>
+          </div>
+          <input
+          class="form_input"
+          @keydown.enter="send_message"
+          type="text"
+          name="msg"
+          v-model="new_msg"
+          />
+          <button @click="send_message" class="send_button">Send</button>
+        </div>
+      </div>
   </div>
 </template>
 
 <script>
 import db from "@/firebase/init";
+import moment from "moment";
 export default {
   name: "GameGridMulti",
   props: ["name"],
@@ -23,12 +74,69 @@ export default {
       table: [],
       copy_table: null,
       tiles: [],
+      score: 0,
+      messages: [],
+      new_msg: null,
+      online_users: [],
       sync: true
     };
   },
   methods: {
+    exit(){
+      db.collection('online-users').doc(this.name).delete();
+    },
+    set_sync(bool){
+      localStorage.setItem('sync', bool);
+      this.sync = bool;
+      db.collection('sync').doc('sync').set({
+        value: bool
+      })
+    },
+    send_message() {
+      if (this.new_msg) {
+        db.collection("messages")
+          .add({
+            content: `: ${this.new_msg}`,
+            name: this.name,
+            timestamp: Date.now()
+          })
+          .catch(err => {
+            console.log(err);
+          });
+        this.new_msg = null;
+
+      }
+    },
+    swipe_handler(direction){
+      if(direction == 'top'){
+        this.up_arrow(true);
+        setTimeout(() => {
+          this.update_db();
+        }, 250);
+      }
+      else if(direction == 'bottom'){
+        this.down_arrow(true);
+        setTimeout(() => {
+          this.update_db();
+        }, 250);
+      }
+      else if(direction == 'left'){
+        this.left_arrow(true);
+        setTimeout(() => {
+          this.update_db();
+        }, 250);
+      }
+      else if(direction == 'right'){
+        this.right_arrow(true);
+        setTimeout(() => {
+          this.update_db();
+        }, 250);
+      }
+        
+    },
+
     left_arrow(my_move) {
-      this.sync = false;
+      this.set_sync(false);
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let k;
       for (let i = 0; i < 6; i++) {
@@ -64,9 +172,9 @@ export default {
                 ok = 0;
               else ok = 1;
               if (this.copy_table[i][k] == this.copy_table[i][j] && ok == 0) {
-                debugger
                 was_merged[k] = true;
                 let new_val = this.copy_table[i][k] * 2;
+                this.update_score(new_val, my_move);
                 this.table[i][j] = 0;
                 this.copy_table[i][j] = 0;
                 this.copy_table[i][k] = new_val;
@@ -97,33 +205,51 @@ export default {
           }
         }
       }
-      if(JSON.stringify(test_move) != JSON.stringify(this.copy_table))
-        this.spawn_new_tile(my_move, false);
+      if(JSON.stringify(test_move) == JSON.stringify(this.copy_table)){
+        this.set_sync(true);
+        return;
+      }  
+      this.spawn_new_tile(my_move, false);
 
 
-      if (my_move)
+      if (my_move){
         db.collection("moves")
           .doc()
           .set({
             move: "left",
-            author: this.name
+            author: this.name,
+            time: Date.now()
           });
-      else{
-        let bool;
-        db.collection('available').get().then(res => {
-          res.forEach(doc => {
-            bool = doc.data().value;
+        db.collection("messages")
+          .add({
+            content: 'moved left',
+            name: this.name,
+            timestamp: Date.now()
           })
+          .catch(err => {
+            console.log(err);
+          });
+        let online_members = 0;
+        db.collection('online-users').get()
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            online_members += 1;
+          })
+          if(online_members == 1){
+            setTimeout(() => {
+              this.set_sync(true);
+            }, 250);
+          }
         })
+      }
+      else{
         setTimeout(() => {
-          db.collection('available').doc('available').set({
-            value: !bool
-          })
-        }, 240);
+          this.set_sync(true);
+        }, 250);
       }
     },
     right_arrow(my_move) {
-      this.sync = false;
+      this.set_sync(false);
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let k;
       //i is row index
@@ -163,6 +289,7 @@ export default {
               if (this.copy_table[i][k] == this.copy_table[i][j] && ok == 0) {
                 was_merged[k] = true;
                 let new_val = this.copy_table[i][k] * 2;
+                this.update_score(new_val, my_move);
                 this.table[i][j] = 0;
                 this.copy_table[i][j] = 0;
                 this.copy_table[i][k] = new_val;
@@ -193,32 +320,50 @@ export default {
           }
         }
       }
-      if(JSON.stringify(test_move) != JSON.stringify(this.copy_table))
-        this.spawn_new_tile(my_move, false);
+      if(JSON.stringify(test_move) == JSON.stringify(this.copy_table)){
+        this.set_sync(true);
+        return;
+      }  
+      this.spawn_new_tile(my_move, false);
 
-      if (my_move)
+      if (my_move){
         db.collection("moves")
           .doc()
           .set({
             move: "right",
-            author: this.name
+            author: this.name,
+            time: Date.now()
           });
-      else{
-        let bool;
-        db.collection('available').get().then(res => {
-          res.forEach(doc => {
-            bool = doc.data().value;
+        db.collection("messages")
+          .add({
+            content: 'moved right',
+            name: this.name,
+            timestamp: Date.now()
           })
+          .catch(err => {
+            console.log(err);
+          });
+        let online_members = 0;
+        db.collection('online-users').get()
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            online_members += 1;
+          })
+          if(online_members == 1){
+            setTimeout(() => {
+              this.set_sync(true);
+            }, 250);
+          }
         })
+      }
+      else{
         setTimeout(() => {
-          db.collection('available').doc('available').set({
-            value: !bool
-          })
-        }, 240);
+              this.set_sync(true);
+            }, 250);
       }
     },
     up_arrow(my_move) {
-      this.sync = false;
+      this.set_sync(false);
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let made_move = 0;
       let k;
@@ -256,6 +401,7 @@ export default {
               if (this.copy_table[k][i] == this.copy_table[j][i] && ok == 0) {
                 was_merged[k] = true;
                 let new_val = this.copy_table[k][i] * 2;
+                this.update_score(new_val, my_move);
                 this.table[j][i] = 0;
                 this.copy_table[j][i] = 0;
                 this.copy_table[k][i] = new_val;
@@ -286,32 +432,51 @@ export default {
           }
         }
       }
-      if(JSON.stringify(test_move) != JSON.stringify(this.copy_table))
-        this.spawn_new_tile(my_move, false);
+      if(JSON.stringify(test_move) == JSON.stringify(this.copy_table)){
+        this.set_sync(true);
+        return;
+      }  
+        
+      this.spawn_new_tile(my_move, false);
 
-      if (my_move)
+      if (my_move){
         db.collection("moves")
           .doc()
           .set({
             move: "up",
-            author: this.name
+            author: this.name,
+            time: Date.now()
           });
-      else{
-        let bool;
-        db.collection('available').get().then(res => {
-          res.forEach(doc => {
-            bool = doc.data().value;
+        db.collection("messages")
+          .add({
+            content: 'moved up',
+            name: this.name,
+            timestamp: Date.now()
           })
+          .catch(err => {
+            console.log(err);
+          });
+        let online_members = 0;
+        db.collection('online-users').get()
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            online_members += 1;
+          })
+          if(online_members == 1){
+            setTimeout(() => {
+              this.set_sync(true);
+            }, 250);
+          }
         })
+      }
+      else{
         setTimeout(() => {
-          db.collection('available').doc('available').set({
-            value: !bool
-          })
-        }, 240);
+              this.set_sync(true);
+            }, 250);
       }
     },
     down_arrow(my_move) {
-      this.sync = false;
+      this.set_sync(false);
       let test_move = JSON.parse(JSON.stringify(this.copy_table));
       let made_move = 0;
       let k;
@@ -350,6 +515,7 @@ export default {
               if (this.copy_table[k][i] == this.copy_table[j][i] && ok == 0) {
                 was_merged[k] = true;
                 let new_val = this.copy_table[k][i] * 2;
+                this.update_score(new_val, my_move);
                 this.table[j][i] = 0;
                 this.copy_table[j][i] = 0;
                 this.copy_table[k][i] = new_val;
@@ -383,29 +549,56 @@ export default {
         }
       }
 
-      if(JSON.stringify(test_move) != JSON.stringify(this.copy_table))
-        this.spawn_new_tile(my_move, false);
+      if(JSON.stringify(test_move) == JSON.stringify(this.copy_table)){
+        this.set_sync(true);
+        return;
+      }  
+      
+      this.spawn_new_tile(my_move, false);
 
-      if (my_move)
+      if (my_move){
         db.collection("moves")
           .doc()
           .set({
             move: "down",
-            author: this.name
+            author: this.name,
+            time: Date.now()
           });
-      else{
-        let bool;
-        db.collection('available').get().then(res => {
-          res.forEach(doc => {
-            bool = doc.data().value;
+        db.collection("messages")
+          .add({
+            content: 'moved down',
+            name: this.name,
+            timestamp: Date.now()
           })
+          .catch(err => {
+            console.log(err);
+          });
+        let online_members = 0;
+        db.collection('online-users').get()
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            online_members += 1;
+          })
+          if(online_members == 1){
+            setTimeout(() => {
+              this.set_sync(true);
+            }, 250);
+          }
         })
-        setTimeout(() => {
-          db.collection('available').doc('available').set({
-            value: !bool
-          })
-        }, 240);
       }
+      else{
+        setTimeout(() => {
+              this.set_sync(true);
+            }, 250);
+      }
+    },
+    update_score(new_val, my_move){
+        if(my_move){
+            this.score += new_val;
+            db.collection('score').doc('score').set({
+              value: this.score
+            })
+        }
     },
     set_delay(i, k, new_val) {
       setTimeout(() => {
@@ -435,7 +628,6 @@ export default {
         this.copy_table[a][b] = 2;
         localStorage.setItem("a", a);
         localStorage.setItem("b", b);
-        this.update_db();
       } else if (!my_move && !new_game) {
         let a = parseInt(localStorage.getItem("a"));
         let b = parseInt(localStorage.getItem("b"));
@@ -469,7 +661,6 @@ export default {
         this.copy_table[c][d] = 2;
         localStorage.setItem("c", c);
         localStorage.setItem("d", d);
-        this.update_db();
       } else {
         let a = parseInt(localStorage.getItem("a"));
         let b = parseInt(localStorage.getItem("b"));
@@ -488,25 +679,26 @@ export default {
       }
     },
     key_pressed(e) {
-      if (e.keyCode == 37 && this.sync) {
+      let sync = localStorage.getItem('sync')
+      if (e.keyCode == 37 && sync == 'true') {
         this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.left_arrow(true);
         setTimeout(() => {
           this.update_db();
         }, 250);
-      } else if (e.keyCode == 38 && this.sync) {
+      } else if (e.keyCode == 38 && sync == 'true') {
         this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.up_arrow(true);
         setTimeout(() => {
           this.update_db();
         }, 250);
-      } else if (e.keyCode == 39 && this.sync) {
+      } else if (e.keyCode == 39 && sync == 'true') {
         this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.right_arrow(true);
         setTimeout(() => {
           this.update_db();
         }, 250);
-      } else if (e.keyCode == 40 && this.sync) {
+      } else if (e.keyCode == 40 && sync == 'true') {
         this.copy_table = JSON.parse(JSON.stringify(this.table));
         this.down_arrow(true);
         setTimeout(() => {
@@ -533,7 +725,7 @@ export default {
             ref2.doc("tile" + tile[0] + "_" + tile[1]).set({
               valuex: tile[0],
               valuey: tile[1],
-              delete: tile[2].delete
+              deletez: tile[2].delete
             });
           });
         });
@@ -555,18 +747,40 @@ export default {
       });
       this.tiles = [];
       this.spawn_new_tile(my_move, new_game);
+      setTimeout(() => {
+          this.update_db();
+        }, 250);
 
-      if (my_move)
+      db.collection('score').doc('score').set({
+        value: 0
+      })
+
+      if (my_move){
         db.collection("moves")
           .doc()
           .set({
             move: "new",
-            author: this.name
+            author: this.name,
+            time: Date.now()
           });
+        db.collection("messages")
+          .add({
+            content: 'started a new game',
+            name: this.name,
+            timestamp: Date.now()
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      }
+        
     }
   },
   created() {
     window.addEventListener("keydown", this.key_pressed);
+    window.addEventListener('beforeunload', this.exit);
+    window.addEventListener('popstate', this.exit);
+    this.set_sync(true);
 
 
     db.collection("table")
@@ -583,74 +797,144 @@ export default {
         this.copy_table = JSON.parse(JSON.stringify(this.table));
       });
 
-    db.collection("tiles")
-      .get()
-      .then(snapshot => {
-        snapshot.forEach(doc => {
-          this.tiles.push([
-            doc.data().valuex,
-            doc.data().valuey,
-            { delete: doc.data().delete }
-          ]);
-        });
-      });
+    db.collection('tiles')
+    .get()
+    .then(snapshot => {
+      snapshot.forEach(doc => {
+        this.tiles.push([
+          doc.data().valuex,
+          doc.data().valuey,
+          {
+            delete: doc.data().deletez
+          }
+        ])
+      })
+    })
+    
+    db.collection('score').get()
+    .then(snapshot => {
+      snapshot.forEach(doc => {
+        this.score = doc.data().value
+      })
+    })
+
+    db.collection('moves').get()
+    .then(snapshot => {
+      snapshot.forEach(doc => {
+
+      })
+    })
 
     var initial_state = true;
+    var time_now = Date.now();
     db.collection("moves").onSnapshot(snapshot => {
       if (initial_state) {
         initial_state = false;
       } else {
         if (!snapshot.docChanges().empty) {
           snapshot.docChanges().forEach(change => {
-            if (change.type == "added") {
+            if (change.type == "added" && change.doc.data().time > time_now) {
               if (change.doc.data().author != this.name) {  
-                if (change.doc.data().move == "left" && this.sync){
+                if (change.doc.data().move == "left"){
                   this.copy_table = JSON.parse(JSON.stringify(this.table));
                   this.left_arrow(false);
                 } 
-                if (change.doc.data().move == "right" && this.sync){
+                if (change.doc.data().move == "right"){
                   this.copy_table = JSON.parse(JSON.stringify(this.table));
                   this.right_arrow(false);
                 } 
-                if (change.doc.data().move == "up" && this.sync){
+                if (change.doc.data().move == "up"){
                   this.copy_table = JSON.parse(JSON.stringify(this.table));
                   this.up_arrow(false);
                 } 
-                if (change.doc.data().move == "down" && this.sync){
+                if (change.doc.data().move == "down"){
                   this.copy_table = JSON.parse(JSON.stringify(this.table));
                   this.down_arrow(false);
                 } 
-                if (change.doc.data().move == "new")
+                if (change.doc.data().move == "new"){
                   this.start_new_game(false, true);
+                }
               }
             }
           });
         }
       }
     });
+
+    db.collection('online-users')
+        .onSnapshot((snapshot) => {
+            snapshot.docChanges().forEach(change => {
+                if(change.type == 'added'){
+                    this.online_users.push(change.doc.id)
+                }
+                if(change.type == 'removed'){
+                    this.online_users = this.online_users.filter(user => {
+                        return user != change.doc.id;
+                    })
+                }
+            })    
+        })
+
+
     initial_state = true;
-    db.collection("available").onSnapshot(snapshot => {
-      if (initial_state) {
+    db.collection('score').onSnapshot(snapshot => {
+      if(initial_state){
         initial_state = false;
-      } else {
-        if (!snapshot.docChanges().empty) {
+      }
+      else{
+        if(!snapshot.docChanges().empty){
           snapshot.docChanges().forEach(change => {
-            if (change.type == "modified") {
-              this.sync = true;
+            if(change.type == "modified"){
+              this.score = change.doc.data().value
             }
-          });
+          })
         }
       }
-    });
+    })
+
+    initial_state = true;
+    db.collection('sync').onSnapshot(snapshot => {
+      if(initial_state){
+        initial_state = false;
+      }
+      else{
+        if(!snapshot.docChanges().empty){
+          snapshot.docChanges().forEach(change => {
+            if(change.type == "modified"){
+              this.sync = change.doc.data().value;
+            }
+          })
+        }
+      }
+    })
+
+    let ref = db.collection("messages").orderBy("timestamp");
+        ref.onSnapshot(snapshot => {
+          snapshot.docChanges().forEach(change => {
+            if (change.type == "added") {
+              let doc = change.doc;
+              this.messages.push({
+                id: doc.id,
+                name: doc.data().name,
+                content: doc.data().content,
+                timestamp: moment(doc.data().timestamp).format("LT")
+              });
+            }
+          });
+        });
   },
   beforeDestroy(){
     window.removeEventListener("keydown", this.key_pressed);
+    window.removeEventListener('beforeunload', this.exit)
+    window.removeEventListener('popstate', this.exit)
   }
 };
 </script>
 
 <style>
 @import "../styles/tiles.css";
+@import "../styles/tiles_mobile.css";
+@import "../styles/chat_style.css";
 
 .gamegrid {
   width: 480px;
@@ -681,4 +965,185 @@ export default {
   transition: 0.25s ease-out;
 }
 
+.wrapper_multi{
+  height: 100%;
+  width: 100%;
+}
+
+.new_game_multi {
+  height: 40px;
+  width: 110px;
+  background-color: #776e65;
+  color: #e2dddd;
+  border-radius: 5px;
+  padding: 0 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.container_multi{
+    width: 500px;
+    height: 650px;
+    margin-top: 50px;
+}
+
+
+
+.score_multi{
+    width: 80px;
+    height: 60px;
+    background-color: #776e65;
+    border-radius: 5px;
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.score_multi .title_score_multi{
+    margin: 0;
+    color: #e2dddd;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.score_multi .actual_score_multi{
+    color: white;
+    font-size: 25px;
+    font-weight: 500;
+    margin: 0;
+}
+
+
+.header_multi{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    align-items: center;
+    justify-content: space-around;
+}
+.header_multi .title_multi{
+  font-family: sans-serif;
+  font-size: 70px;
+  font-weight: 900;
+  color: #776e65;
+  margin: 0;
+}
+
+.cont{
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.my_name_multi{
+  color: #f2b179;
+  font-weight: 700;
+}
+
+@media only screen and (max-width: 1130px){
+
+html{
+  height: 1300px;
+}
+
+.cont{
+  flex-direction: column;
+}
+
+.chat_block{
+  margin:0;
+  
+}
+
+
+@media only screen and (max-width: 600px){
+
+  html{
+  height: 1100px;
+}
+
+.msg_container{
+  width:90vw;
+}
+
+.send_button{
+  margin-left: calc(50% - 40px);
+  margin-top: 15px;
+}
+
+.messages{
+  width: 70%;
+}
+.online_users{
+  width: 30%;
+}
+
+.form_input{
+  width: 100%;
+}
+
+  .gamegrid {
+  width: 300px;
+  height: 300px;
+  padding-left: 5px;
+  padding-bottom: 5px;
+}
+
+
+  .square {
+  width: 45px;
+  height: 45px;
+  margin-top: 5px;
+  margin-right: 5px;
+  font-size: 40px;
+  box-shadow: 0 0 15px 10px rgba(243, 215, 116, 0),
+    inset 0 0 0 1px rgba(255, 255, 255, 0);
+}
+.cont{
+  justify-content: flex-start;
+}
+
+.container_multi{
+    width: 310px;
+    height: 500px;
+    margin-top: 50px;
+    
+}
+.container_multi .header_multi{
+  margin-bottom: 10px;
+  height: 60px;
+}
+
+.header_multi .title_multi{
+  font-size: 40px;
+}
+
+.score_multi{
+    width: 80px;
+    height: 45px;
+    background-color: #776e65;
+    border-radius: 5px;
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.score_multi .title_score_multi{
+    margin: 0;
+    color: #e2dddd;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.score_multi .actual_score_multi{
+    color: white;
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0;
+}
+
+}
+}
 </style>
